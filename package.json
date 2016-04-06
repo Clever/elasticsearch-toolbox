@@ -1,0 +1,20 @@
+{
+  "name": "elasticsearch-toolbox",
+  "version": "0.1.0",
+  "dependencies": {
+    "beeline": "^0.2.4",
+    "request": "^2.70.0",
+    "ts-node": "^0.7.1",
+    "typescript": "^1.8.9"
+  },
+  "scripts": {
+    "dev-server": "NODE_ENV=development node_modules/node-dev/bin/node-dev server.ts; kill %1",
+    "test": "make -Br test"
+  },
+  "engines": {
+    "node": "5.7.1"
+  },
+  "devDependencies": {
+    "node-dev": "^3.1.0"
+  }
+}

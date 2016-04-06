@@ -1,0 +1,13 @@
+node_modules
+*~
+.DS_Store
+\#*\#
+public/javascripts
+public/stylesheets
+apps-js-cov
+apps-js
+coverage.html
+build
+
+dump.rdb
+npm-debug.log

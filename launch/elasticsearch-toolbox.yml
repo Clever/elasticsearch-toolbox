@@ -1,0 +1,17 @@
+run:
+  type: docker
+env:
+- ELASTICSEARCH_URL
+- ELASTICSEARCH_USER
+- ELASTICSEARCH_PASSWORD
+resources:
+  cpu: 0.1
+expose:
+- name: http
+  port: 80
+  bind: 80
+  health_check:
+    type: http
+    path: /elb/check
+shepherds:
+- ryan.burns@clever.com
