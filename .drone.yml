@@ -25,3 +25,7 @@ publish:
     username: $$docker_username
     when:
       branch: master
+script:
+  - nvm install v5.7.0 &> /dev/null
+  - make build
+  - make test

@@ -7,8 +7,8 @@ var request = require('request');
 var get_es = function(path) {
     // wrap the async request in a promise and return it
     return new Promise(function(resolve, reject) {
-        var url = config.ELASTICSEARCH_URL + path;
-        var auth = {
+        const url = config.ELASTICSEARCH_URL + path;
+        const auth = {
             'user': config.ELASTICSEARCH_USER,
             'pass': config.ELASTICSEARCH_PASSWORD,
             'sendImmediately': false
@@ -17,7 +17,7 @@ var get_es = function(path) {
             if (!error && response.statusCode == 200) {
                 resolve(JSON.parse(body));
             } else {
-                reject(Error(response.statusText));
+                reject(Error("Request failed with "+response.statusCode));
             }
         });
     });
@@ -28,14 +28,14 @@ var get_es = function(path) {
 export function get_indices() {
     return get_es('_stats?level=shards').then(function(data) {
         // parse the index names into a list
-        var indices = [];
+        const indices = [];
         Object.keys(data['indices']).forEach(function(key) {
             // filter out the kibana index
             if (key.indexOf('.kibana') < 0) {
                 indices.push(key);
             }
         });
-        return indices;
+        return indices.sort();
     });
 }
 
