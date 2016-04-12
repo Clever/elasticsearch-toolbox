@@ -5,41 +5,30 @@ if (+major < 5) {
 }
 
 
-var bee    = require('beeline');
-var http   = require('http');
-var config = require('./config');
-var es     = require('./lib/elasticsearch')
+var express = require("express");
+var config  = require("./config");
+var es      = require("./lib/elasticsearch");
 
 
-var router = bee.route({
-    "/static/`path...`": bee.staticDir(
-        "./static/",
-        {
-            ".js": "application/javascript",
-            ".html": "text/html",
-            ".css": "text/css",
-            ".xml": "text/xml"
-        }
-    )
-});
+var app = express();
+app.use("/static", express.static("static"));
 
 // list the index stats as a json object
-router.add({"/status/indices": function(req, res) {
-    console.log("get indices");
-
-    es.get_indices().then(function(indices) {
-        var data = JSON.stringify(indices);
-        res.writeHead(200, {
-          'Content-Length': data.length,
-          'Content-Type': 'application/json',
-        });
-        res.end(data);
+app.get("/status/indices", (req, res) => {
+  es.get_indices().then((indices) => {
+    var data = JSON.stringify(indices);
+    res.set({
+      "Content-Length": data.length,
+      "Content-Type": "application/json",
     });
-}});
+    res.status(200).send(data);
+  });
+});
 
 
 if (require.main === module) {
+  app.listen(config.PORT, () => {
     console.log(`Server listening on port ${config.PORT}`);
     console.log(`ES backend: ${config.ELASTICSEARCH_URL}`);
-    http.createServer(router).listen(config.PORT);
+  });
 }

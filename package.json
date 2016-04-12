@@ -2,7 +2,7 @@
   "name": "elasticsearch-toolbox",
   "version": "0.1.0",
   "dependencies": {
-    "beeline": "^0.2.4",
+    "express": "^4.13.4",
     "request": "^2.70.0",
     "ts-node": "^0.7.1",
     "typescript": "^1.8.9"
@@ -16,8 +16,14 @@
   },
   "devDependencies": {
     "assert": "^1.3.0",
+    "babel-eslint": "^6.0.2",
+    "eslint": "^2.7.0",
+    "eslint-config-airbnb": "^7.0.0",
+    "eslint-plugin-jsx-a11y": "^0.6.2",
+    "eslint-plugin-react": "^4.3.0",
     "mocha": "^2.4.5",
     "node-dev": "^3.1.0",
-    "sinon": "^1.17.3"
+    "sinon": "^1.17.3",
+    "tslint": "^3.7.3"
   }
 }
