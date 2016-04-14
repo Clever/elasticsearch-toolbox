@@ -14,9 +14,9 @@ const auth = {
 // a promise with the decoded result.
 function request_es(method, path) {
   return new Promise((resolve, reject) => {
-    method = method.toLowerCase()
+    method = method.toLowerCase();
     if (!_.contains(["put", "patch", "post", "head", "del", "get"], method)) {
-      reject(new Error(`Invalid method ${method}`))
+      reject(new Error(`Invalid method ${method}`));
     }
     const url = config.ELASTICSEARCH_URL + path;
     request[method]({url, auth}, (error, response, body) => {
@@ -57,23 +57,22 @@ export function get_indices() {
 const NUM_DAYS = 15;
 
 function filter_old_indices(current_indices) {
-  return new Promise((resolve, reject) => {
+  return new Promise((resolve) => {
     const acceptable_indices = [];
     let today = moment();
     for (let i = 0; i < NUM_DAYS; i++) {
       acceptable_indices.push(`logs-${today.format("YYYY.MM.DD")}`);
-      today = today.subtract(1, 'days');
+      today = today.subtract(1, "days");
     }
-    current_indices.push('fake-index');
     const indices = _.difference(current_indices, acceptable_indices);
     resolve(indices);
-  })
+  });
 }
 
 function delete_indices(indices) {
-  return Promise.all(_.map(indices, (index) => request_es("del", `/${index}`)))
+  return Promise.all(_.map(indices, (index) => request_es("del", `/${index}`)));
 }
 
 export function clear_old_indices() {
-  return get_indices().then(filter_old_indices).then(delete_indices)
+  return get_indices().then(filter_old_indices).then(delete_indices);
 }
