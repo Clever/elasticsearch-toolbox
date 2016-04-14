@@ -14,10 +14,12 @@ function get_es(path) {
       sendImmediately: false,
     };
     request.get({url, auth}, (error, response, body) => {
-      if (!error && response.statusCode === 200) {
+      if (error != null) {
+        reject(error);
+      } else if (response.statusCode === 200) {
         resolve(JSON.parse(body));
       } else {
-        reject(Error(`Request failed with ${response.statusCode}`));
+        reject(new Error(`Request failed with ${response.statusCode}`));
       }
     });
   });
@@ -27,7 +29,7 @@ function get_es(path) {
 // Returns a promise with a list of all the indexes
 // TODO: extend this to also include shards and other interesting data
 export function get_indices() {
-  return get_es("_stats?level=shards").then((data) => {
+  return get_es("/_stats?level=shards").then((data) => {
     // parse the index names into a list
     const filtered_indices = [];
     Object.keys(data.indices).forEach((key) => {
