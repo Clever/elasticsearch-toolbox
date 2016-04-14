@@ -22,6 +22,8 @@ app.get("/status/indices", (req, res) => {
       "Content-Type": "application/json",
     });
     res.status(200).send(data);
+  }).catch((data) => {
+    res.status(500).send(data);
   });
 });
 
