@@ -5,7 +5,10 @@ if (+major < 5) {
 }
 
 
+var _       = require("underscore");
 var express = require("express");
+var moment  = require("moment");
+
 var config  = require("./config");
 var es      = require("./lib/elasticsearch");
 
@@ -16,14 +19,18 @@ app.use("/static", express.static("static"));
 // list the index stats as a json object
 app.get("/status/indices", (req, res) => {
   es.get_indices().then((indices) => {
-    var data = JSON.stringify(indices);
-    res.set({
-      "Content-Length": data.length,
-      "Content-Type": "application/json",
-    });
-    res.status(200).send(data);
+    res.status(200).send(indices);
   }).catch((data) => {
     res.status(500).send(data);
+  });
+});
+
+app.get("/indices/clear", (req, res) => {
+  es.clear_old_indices().then((cleared_indices) => {
+    console.log("cleared", cleared_indices);
+    res.status(200).send(cleared_indices);
+  }).catch((err) => {
+    res.status(500).send(err.message);
   });
 });
 
