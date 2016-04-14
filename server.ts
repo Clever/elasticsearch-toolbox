@@ -23,6 +23,7 @@ app.get("/status/indices", (req, res) => {
   });
 });
 
+// Delete all indexes older than 14 days
 app.get("/indices/clear", (req, res) => {
   es.clear_old_indices().then((cleared_indices) => {
     console.log("cleared", cleared_indices);

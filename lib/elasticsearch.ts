@@ -52,9 +52,8 @@ export function get_indices() {
   });
 }
 
-// We want to keep 14 days of indices. Let's do 15 so I don't have to think hard about what happens
-// when the time is in UTC or when we're before/after midnight.
-const NUM_DAYS = 15;
+// Keep 14 days of indexes
+const NUM_DAYS = 14;
 
 function filter_old_indices(current_indices) {
   return new Promise((resolve) => {

@@ -12,6 +12,7 @@ A collection of tools for maintaining an Elasticsearch cluster. Most tools are w
 # API
 
   - **/status/indices** - returns the indexes as json
+  - **/indices/clear** - remove any indexes older than 14 days
 
 # Local Development
 
