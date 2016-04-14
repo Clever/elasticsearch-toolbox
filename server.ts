@@ -5,9 +5,7 @@ if (+major < 5) {
 }
 
 
-var _       = require("underscore");
 var express = require("express");
-var moment  = require("moment");
 
 var config  = require("./config");
 var es      = require("./lib/elasticsearch");
