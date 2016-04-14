@@ -18,8 +18,8 @@ app.use("/static", express.static("static"));
 app.get("/status/indices", (req, res) => {
   es.get_indices().then((indices) => {
     res.status(200).send(indices);
-  }).catch((data) => {
-    res.status(500).send(data);
+  }).catch((err) => {
+    res.status(500).send(err.message);
   });
 });
 
