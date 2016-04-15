@@ -38,7 +38,8 @@ describe("elasticsearch", () => {
         .reply(200, expected)
         .delete(`/logs-${format(lastMonth)}`)
         .reply(200, {});
-      es.clear_old_indices().then(() => {
+      es.clear_old_indices().then((indices) => {
+        assert.deepEqual(indices, [`logs-${format(lastMonth)}`]);
         fakeES.done();
         done();
       }).catch((err) => {

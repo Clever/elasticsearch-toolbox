@@ -65,8 +65,16 @@ function filter_old_indices(current_indices) {
   });
 }
 
+// delete_index that takes in an index to delete, deletes it, and returns the name of the index that
+// was deleted or an error
+function delete_index(index) {
+  return new Promise((resolve, reject) => {
+    request_es("del", `/${index}`).then(() => resolve(index)).catch(reject);
+  });
+}
+
 function delete_indices(indices) {
-  return Promise.all(_.map(indices, (index) => request_es("del", `/${index}`)));
+  return Promise.all(_.map(indices, (index) => delete_index(index)));
 }
 
 export function clear_old_indices() {

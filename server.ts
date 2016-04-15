@@ -38,8 +38,8 @@ if (config.indices.clearAt) {
   var job = new cron.CronJob({
     cronTime: config.indices.clearAt,
     onTick: () => {
-      es.clear_old_indices().then(() => {
-        console.log("cleared old indices");
+      es.clear_old_indices().then((indices) => {
+        console.log("deleted indices", indices);
       }).catch((err) => {
         console.error("failure clearing old indices", err);
       });
