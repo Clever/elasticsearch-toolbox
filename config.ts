@@ -1,3 +1,6 @@
+var fs   = require("fs");
+var yaml = require("js-yaml");
+
 const missing_vars = [];
 const env_var_defaults = {
   PORT:                   8001,
@@ -24,3 +27,18 @@ for (const key of Object.keys(env_var_defaults)) {
 if (missing_vars.length > 0) {
   throw new Error(`Missing env variables: ${missing_vars.join(", ")}`);
 }
+
+// Get document, or throw exception on error
+const conf = yaml.safeLoad(fs.readFileSync("./config.yml", "utf8"));
+
+if (!conf.indices) {
+  throw new Error("missing index configuration");
+}
+if (!conf.indices.prefix) {
+  throw new Error("missing log prefix");
+}
+if (!conf.indices.days) {
+  throw new Error("missing number of days to keep");
+}
+
+module.exports.indices = conf.indices;

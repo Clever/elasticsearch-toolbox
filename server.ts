@@ -5,6 +5,7 @@ if (+major < 5) {
 }
 
 
+var cron    = require("cron");
 var express = require("express");
 
 var config  = require("./config");
@@ -26,13 +27,27 @@ app.get("/status/indices", (req, res) => {
 // Delete all indexes older than 14 days
 app.get("/indices/clear", (req, res) => {
   es.clear_old_indices().then((cleared_indices) => {
-    console.log("cleared", cleared_indices);
     res.status(200).send(cleared_indices);
   }).catch((err) => {
     res.status(500).send(err.message);
   });
 });
 
+if (config.indices.clearAt) {
+  console.log(`clearing indexes at '${config.indices.clearAt}'`);
+  var job = new cron.CronJob({
+    cronTime: config.indices.clearAt,
+    onTick: () => {
+      es.clear_old_indices().then(() => {
+        console.log("cleared old indices");
+      }).catch((err) => {
+        console.error("failure clearing old indices", err);
+      });
+    },
+    start: false,
+  });
+  job.start();
+}
 
 if (require.main === module) {
   app.listen(config.PORT, () => {

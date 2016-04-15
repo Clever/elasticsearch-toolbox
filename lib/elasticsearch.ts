@@ -52,15 +52,12 @@ export function get_indices() {
   });
 }
 
-// Keep 14 days of indexes
-const NUM_DAYS = 14;
-
 function filter_old_indices(current_indices) {
   return new Promise((resolve) => {
     const acceptable_indices = [];
     let today = moment();
-    for (let i = 0; i < NUM_DAYS; i++) {
-      acceptable_indices.push(`logs-${today.format("YYYY.MM.DD")}`);
+    for (let i = 0; i < config.indices.days; i++) {
+      acceptable_indices.push(`${config.indices.prefix}-${today.format("YYYY.MM.DD")}`);
       today = today.subtract(1, "days");
     }
     const indices = _.difference(current_indices, acceptable_indices);
