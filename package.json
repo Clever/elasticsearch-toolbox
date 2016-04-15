@@ -2,10 +2,14 @@
   "name": "elasticsearch-toolbox",
   "version": "0.1.0",
   "dependencies": {
+    "cron": "^1.1.0",
     "express": "^4.13.4",
+    "js-yaml": "^3.5.5",
+    "moment": "^2.12.0",
     "request": "^2.70.0",
     "ts-node": "^0.7.1",
-    "typescript": "^1.8.9"
+    "typescript": "^1.8.9",
+    "underscore": "^1.8.3"
   },
   "scripts": {
     "dev-server": "NODE_ENV=development node_modules/node-dev/bin/node-dev server.ts; kill %1",
@@ -22,6 +26,7 @@
     "eslint-plugin-jsx-a11y": "^0.6.2",
     "eslint-plugin-react": "^4.3.0",
     "mocha": "^2.4.5",
+    "nock": "^8.0.0",
     "node-dev": "^3.1.0",
     "sinon": "^1.17.3",
     "tslint": "^3.7.3"

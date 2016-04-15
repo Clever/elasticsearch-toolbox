@@ -1,19 +1,25 @@
-var config  = require("../config");
+var _       = require("underscore");
+var moment  = require("moment");
 var request = require("request");
 
+var config  = require("../config");
 
-// Helper function to make ES queries. Pass it a path to query and it returns
-// a promise with the decoded result
-function get_es(path) {
-  // wrap the async request in a promise and return it
+const auth = {
+  user: config.ELASTICSEARCH_USER,
+  pass: config.ELASTICSEARCH_PASSWORD,
+  sendImmediately: false,
+};
+
+// Helper function to make ES queries. Pass it a method and a path to query and it returns
+// a promise with the decoded result.
+function request_es(method, path) {
   return new Promise((resolve, reject) => {
+    method = method.toLowerCase();
+    if (!_.contains(["put", "patch", "post", "head", "del", "get"], method)) {
+      reject(new Error(`Invalid method ${method}`));
+    }
     const url = config.ELASTICSEARCH_URL + path;
-    const auth = {
-      user: config.ELASTICSEARCH_USER,
-      pass: config.ELASTICSEARCH_PASSWORD,
-      sendImmediately: false,
-    };
-    request.get({url, auth}, (error, response, body) => {
+    request[method]({url, auth}, (error, response, body) => {
       if (error != null) {
         reject(error);
       } else if (response.statusCode === 200) {
@@ -23,6 +29,10 @@ function get_es(path) {
       }
     });
   });
+}
+
+function get_es(path) {
+  return request_es("get", path);
 }
 
 
@@ -40,4 +50,33 @@ export function get_indices() {
     });
     return filtered_indices.sort();
   });
+}
+
+function filter_old_indices(current_indices) {
+  return new Promise((resolve) => {
+    const acceptable_indices = [];
+    let today = moment();
+    for (let i = 0; i < config.indices.days; i++) {
+      acceptable_indices.push(`${config.indices.prefix}-${today.format("YYYY.MM.DD")}`);
+      today = today.subtract(1, "days");
+    }
+    const indices = _.difference(current_indices, acceptable_indices);
+    resolve(indices);
+  });
+}
+
+// delete_index that takes in an index to delete, deletes it, and returns the name of the index that
+// was deleted or an error
+function delete_index(index) {
+  return new Promise((resolve, reject) => {
+    request_es("del", `/${index}`).then(() => resolve(index)).catch(reject);
+  });
+}
+
+function delete_indices(indices) {
+  return Promise.all(_.map(indices, (index) => delete_index(index)));
+}
+
+export function clear_old_indices() {
+  return get_indices().then(filter_old_indices).then(delete_indices);
 }
