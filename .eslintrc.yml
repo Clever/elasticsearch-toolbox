@@ -39,7 +39,9 @@ rules:
   new-cap:
     - 2
     - newIsCapExceptions: ["kayvee.logger"]
-  no-param-reassign: 0
+  no-param-reassign:
+    - 2
+    - props: false
   key-spacing:
     - 2
     - mode: "minimum"

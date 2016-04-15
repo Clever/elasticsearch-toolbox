@@ -14,12 +14,13 @@ const auth = {
 // a promise with the decoded result.
 function request_es(method, path) {
   return new Promise((resolve, reject) => {
-    method = method.toLowerCase();
-    if (!_.contains(["put", "patch", "post", "head", "del", "get"], method)) {
-      reject(new Error(`Invalid method ${method}`));
+    // For safety, don't assume the method comes in in a consistent case.
+    const meth = method.toLowerCase();
+    if (!_.contains(["put", "patch", "post", "head", "del", "get"], meth)) {
+      reject(new Error(`Invalid method ${meth}`));
     }
     const url = config.ELASTICSEARCH_URL + path;
-    request[method]({url, auth}, (error, response, body) => {
+    request[meth]({url, auth}, (error, response, body) => {
       if (error != null) {
         reject(error);
       } else if (response.statusCode === 200) {
