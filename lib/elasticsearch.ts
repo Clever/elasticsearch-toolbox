@@ -21,8 +21,7 @@ function request_es(method, path, json) {
     }
     const url = config.ELASTICSEARCH_URL + path;
     const opts = {
-      url: url,
-      auth: auth,
+      url, auth,
       body: undefined,
       headers: undefined,
     };
@@ -98,12 +97,6 @@ export function clear_old_indices() {
   return get_indices().then(filter_old_indices).then(delete_indices);
 }
 
-export function update_aliases() {
-  return get_aliases().then(remove_unmanaged_aliases)
-    .then(remove_old_indices_from_aliases)
-    .then(get_aliases).then(remove_unmanaged_aliases);
-}
-
 function get_aliases() {
   return new Promise((resolve, reject) => {
     get_es("/_aliases").then((indices) => {
@@ -124,14 +117,14 @@ function get_aliases() {
       //   }
       // It's much easier to work with a map from alias name to list of indexes in the alias.
       const aliases = {};
-      for (let index of Object.keys(indices)) {
+      for (const index of Object.keys(indices)) {
         // Filter out the kibana index
         if (index.indexOf(".kibana") !== -1) {
-          continue
+          continue;
         }
-        for (let alias of Object.keys(indices[index].aliases)) {
+        for (const alias of Object.keys(indices[index].aliases)) {
           if (!aliases[alias]) {
-            aliases[alias] = []
+            aliases[alias] = [];
           }
           aliases[alias].push(index);
           // Keep the results sorted and unique
@@ -148,17 +141,13 @@ function get_aliases() {
 
 function remove_unmanaged_aliases(aliases) {
   return new Promise((resolve) => {
-    for (let alias of Object.keys(aliases)) {
+    for (const alias of Object.keys(aliases)) {
       if (!config.aliases.mappings[alias]) {
-        delete aliases[alias]
+        delete aliases[alias];
       }
     }
     resolve(aliases);
   });
-}
-
-function remove_old_indices_from_aliases(aliases) {
-  return Promise.all(_.map(aliases, update_alias_state));
 }
 
 function update_alias_state(current_indices, alias) {
@@ -174,20 +163,30 @@ function update_alias_state(current_indices, alias) {
 
     if (!indices_to_remove.length && !indices_to_add.length) {
       resolve();
-      return
+      return;
     }
 
-    const action_el = (action, alias, index) => {
+    const action_el = (action, index) => {
       const out = {};
       out[action] = {index, alias};
       return out;
-    }
-    const actions = _.map(indices_to_remove, _.partial(action_el, "remove", alias))
-      .concat(_.map(indices_to_add, _.partial(action_el, "add", alias)))
-    request_es("post", "/_aliases", {"actions": actions}).then(() => {
+    };
+    const actions = _.map(indices_to_remove, _.partial(action_el, "remove"))
+      .concat(_.map(indices_to_add, _.partial(action_el, "add")));
+    request_es("post", "/_aliases", {actions}).then(() => {
       resolve();
     }).catch((err) => {
       reject(err);
     });
   });
+}
+
+function remove_old_indices_from_aliases(aliases) {
+  return Promise.all(_.map(aliases, update_alias_state));
+}
+
+export function update_aliases() {
+  return get_aliases().then(remove_unmanaged_aliases)
+    .then(remove_old_indices_from_aliases)
+    .then(get_aliases).then(remove_unmanaged_aliases);
 }

@@ -46,7 +46,7 @@ module.exports.indices = conf.indices;
 if (conf.indices.aliases) {
   module.exports.aliases = {mappings: {}};
   for (const key of Object.keys(conf.indices.aliases)) {
-    const val = conf.indices.aliases[key]
+    const val = conf.indices.aliases[key];
     if (key === "updateAt") {
       module.exports.aliases.updateAt = val;
     } else {
