@@ -24,10 +24,19 @@ app.get("/status/indices", (req, res) => {
   });
 });
 
-// Delete all indexes older than 14 days
+// Delete all indexes older than a configured number of days
 app.get("/indices/clear", (req, res) => {
   es.clear_old_indices().then((cleared_indices) => {
     res.status(200).send(cleared_indices);
+  }).catch((err) => {
+    res.status(500).send(err.message);
+  });
+});
+
+// Update all time-based index aliases and return the new alias state
+app.get("/aliases/update", (req, res) => {
+  es.update_aliases().then((aliases) => {
+    res.status(200).send(aliases);
   }).catch((err) => {
     res.status(500).send(err.message);
   });

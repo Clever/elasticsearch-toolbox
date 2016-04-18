@@ -6,3 +6,8 @@ indices:
   # OPTIONAL: Cron timestamp (sec, min, hour, day of month, month, day of week) in UTC.
   # If specified, clears the old indices at that interval.
   clearAt: "0 0 9 * * *" # 2 am PT is 9 am UTC
+  # OPTIONAL: Mappings from alias names to number of days of indexes to keep in that alias.
+  aliases:
+    last_2days: 2
+    # OPTIONAL: Cron timestamp in UTC. If specified, the aliases will be updated at that interval.
+    updateAt: "0 0 0 * * *"
