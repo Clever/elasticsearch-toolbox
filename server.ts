@@ -44,7 +44,7 @@ app.get("/aliases/update", (req, res) => {
 
 if (config.indices.clearAt) {
   console.log(`clearing indexes at '${config.indices.clearAt}'`);
-  var job = new cron.CronJob({
+  const job = new cron.CronJob({
     cronTime: config.indices.clearAt,
     onTick: () => {
       es.clear_old_indices().then((indices) => {
@@ -60,7 +60,7 @@ if (config.indices.clearAt) {
 
 if (config.aliases && config.aliases.updateAt) {
   console.log(`updating aliases at at '${config.aliases.updateAt}'`);
-  var job = new cron.CronJob({
+  const job = new cron.CronJob({
     cronTime: config.aliases.updateAt,
     onTick: () => {
       es.update_aliases().then((aliases) => {
