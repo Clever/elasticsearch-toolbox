@@ -58,6 +58,22 @@ if (config.indices.clearAt) {
   job.start();
 }
 
+if (config.aliases && config.aliases.updateAt) {
+  console.log(`updating aliases at at '${config.aliases.updateAt}'`);
+  var job = new cron.CronJob({
+    cronTime: config.aliases.updateAt,
+    onTick: () => {
+      es.update_aliases().then((aliases) => {
+        console.log("set aliases to", aliases);
+      }).catch((err) => {
+        console.error("failure updating aliases", err);
+      });
+    },
+    start: false,
+  });
+  job.start();
+}
+
 if (require.main === module) {
   app.listen(config.PORT, () => {
     console.log(`Server listening on port ${config.PORT}`);
