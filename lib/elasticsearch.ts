@@ -44,21 +44,32 @@ function get_es(path) {
   return request_es_no_body("get", path);
 }
 
-
-// Returns a promise with a list of all the indexes
-// TODO: extend this to also include shards and other interesting data
-export function get_indices() {
-  return get_es("/_stats?level=shards").then((data) => {
-    // parse the index names into a list
-    const filtered_indices = [];
-    Object.keys(data.indices).forEach((key) => {
+function get_index_settings() {
+  return get_es("/*/_settings").then((data) => {
+    const settings = {};
+    Object.keys(data).forEach((key) => {
       // filter out the kibana index
       if (key.indexOf(".kibana") < 0) {
-        filtered_indices.push(key);
+        settings[key] = data[key];
       }
     });
-    return filtered_indices.sort();
+    return settings;
   });
+}
+
+export function get_index_shards() {
+  return get_index_settings().then((data) => {
+    const shard_map = {};
+    Object.keys(data).forEach((key) => {
+      shard_map[key] = {shards: data[key].settings.index.number_of_shards,
+                        replicas: data[key].settings.index.number_of_replicas};
+    });
+    return shard_map;
+  });
+}
+
+export function get_indices() {
+  return get_index_settings().then((data) => Object.keys(data).sort());
 }
 
 function filter_old_indices(current_indices) {

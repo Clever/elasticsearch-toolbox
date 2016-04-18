@@ -15,9 +15,9 @@ var es      = require("./lib/elasticsearch");
 var app = express();
 app.use("/static", express.static("static"));
 
-// list the index stats as a json object
+// list the indicies as a json object
 app.get("/status/indices", (req, res) => {
-  es.get_indices().then((indices) => {
+  es.get_index_shards().then((indices) => {
     res.status(200).send(indices);
   }).catch((err) => {
     res.status(500).send(err.message);
