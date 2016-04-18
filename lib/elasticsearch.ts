@@ -77,9 +77,7 @@ function filter_old_indices(current_indices) {
 // delete_index that takes in an index to delete, deletes it, and returns the name of the index that
 // was deleted or an error
 function delete_index(index) {
-  return new Promise((resolve, reject) => {
-    request_es_no_body("del", `/${index}`).then(() => resolve(index)).catch(reject);
-  });
+  return request_es_no_body("del", `/${index}`).then(() => index);
 }
 
 function delete_indices(indices) {
@@ -91,44 +89,40 @@ export function clear_old_indices() {
 }
 
 function get_aliases() {
-  return new Promise((resolve, reject) => {
-    get_es("/_aliases").then((indices) => {
-      // The aliases endpoint returns a map from index name to metadata about those indexes.
-      // e.g.
-      //   {
-      //     ".kibana-4": {
-      //       "aliases": {}
-      //     },
-      //     "logs-2016.04.02": {
-      //       "aliases": {
-      //         "last_2days": {},
-      //         "last_2weeks": {},
-      //         "last_day": {},
-      //         "last_week": {}
-      //       }
-      //     },
-      //   }
-      // It's much easier to work with a map from alias name to list of indexes in the alias.
-      const aliases = {};
-      for (const index of Object.keys(indices)) {
-        // Filter out the kibana index
-        if (index.indexOf(".kibana") !== -1) {
-          continue;
-        }
-        for (const alias of Object.keys(indices[index].aliases)) {
-          if (!aliases[alias]) {
-            aliases[alias] = [];
-          }
-          aliases[alias].push(index);
-          // Keep the results sorted and unique
-          aliases[alias] = _.chain(aliases[alias]).sortBy(_.identity).uniq(true).value();
-        }
+  return get_es("/_aliases").then((indices) => {
+    // The aliases endpoint returns a map from index name to metadata about those indexes.
+    // e.g.
+    //   {
+    //     ".kibana-4": {
+    //       "aliases": {}
+    //     },
+    //     "logs-2016.04.02": {
+    //       "aliases": {
+    //         "last_2days": {},
+    //         "last_2weeks": {},
+    //         "last_day": {},
+    //         "last_week": {}
+    //       }
+    //     },
+    //   }
+    // It's much easier to work with a map from alias name to list of indexes in the alias.
+    const aliases = {};
+    for (const index of Object.keys(indices)) {
+      // Filter out the kibana index
+      if (index.indexOf(".kibana") !== -1) {
+        continue;
       }
+      for (const alias of Object.keys(indices[index].aliases)) {
+        if (!aliases[alias]) {
+          aliases[alias] = [];
+        }
+        aliases[alias].push(index);
+        // Keep the results sorted and unique
+        aliases[alias] = _.chain(aliases[alias]).sortBy(_.identity).uniq(true).value();
+      }
+    }
 
-      resolve(aliases);
-    }).catch((err) => {
-      reject(err);
-    });
+    return aliases;
   });
 }
 
