@@ -24,7 +24,7 @@ app.get("/status/indices", (req, res) => {
   });
 });
 
-// Delete all indexes older than 14 days
+// Delete all indexes older than a configured number of days
 app.get("/indices/clear", (req, res) => {
   es.clear_old_indices().then((cleared_indices) => {
     res.status(200).send(cleared_indices);
@@ -33,15 +33,40 @@ app.get("/indices/clear", (req, res) => {
   });
 });
 
+// Update all time-based index aliases and return the new alias state
+app.get("/aliases/update", (req, res) => {
+  es.update_aliases().then((aliases) => {
+    res.status(200).send(aliases);
+  }).catch((err) => {
+    res.status(500).send(err.message);
+  });
+});
+
 if (config.indices.clearAt) {
   console.log(`clearing indexes at '${config.indices.clearAt}'`);
-  var job = new cron.CronJob({
+  const job = new cron.CronJob({
     cronTime: config.indices.clearAt,
     onTick: () => {
       es.clear_old_indices().then((indices) => {
         console.log("deleted indices", indices);
       }).catch((err) => {
         console.error("failure clearing old indices", err);
+      });
+    },
+    start: false,
+  });
+  job.start();
+}
+
+if (config.aliases && config.aliases.updateAt) {
+  console.log(`updating aliases at at '${config.aliases.updateAt}'`);
+  const job = new cron.CronJob({
+    cronTime: config.aliases.updateAt,
+    onTick: () => {
+      es.update_aliases().then((aliases) => {
+        console.log("set aliases to", aliases);
+      }).catch((err) => {
+        console.error("failure updating aliases", err);
       });
     },
     start: false,
