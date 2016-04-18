@@ -61,8 +61,10 @@ export function get_index_shards() {
   return get_index_settings().then((data) => {
     const shard_map = {};
     Object.keys(data).forEach((key) => {
-      shard_map[key] = {shards: data[key].settings.index.number_of_shards,
-                        replicas: data[key].settings.index.number_of_replicas};
+      shard_map[key] = {
+        shards: data[key].settings.index.number_of_shards,
+        replicas: data[key].settings.index.number_of_replicas,
+      };
     });
     return shard_map;
   });
@@ -188,4 +190,36 @@ export function update_aliases() {
   return get_aliases().then(filter_managed_aliases)
     .then(remove_old_indices_from_aliases)
     .then(get_aliases).then(filter_managed_aliases);
+}
+
+
+// filters out indices based on config.indices.replica.days
+function filter_replica_indices(current_indices) {
+  return new Promise((resolve) => {
+    const ignore_indices = [];
+    let today = moment();
+    for (let i = 0; i < config.indices.replicas.days; i++) {
+      ignore_indices.push(`${config.indices.prefix}-${today.format("YYYY.MM.DD")}`);
+      today = today.subtract(1, "days");
+    }
+    const indices = _.difference(current_indices, ignore_indices);
+    resolve(indices);
+  });
+}
+
+// apply configured replica settings to an index
+function set_replica_state(index) {
+  const new_setting = {index: {number_of_replicas: config.indices.replicas.value}};
+  return request_es("post", `/${index}/_settings`, new_setting);
+}
+
+// apply configured replica settings to a list of indices
+function apply_replica_settings(indices) {
+  return Promise.all(_.map(indices, set_replica_state));
+}
+
+export function update_replicas() {
+  return get_indices().then(filter_replica_indices)
+    .then(apply_replica_settings)
+    .then(get_index_shards);
 }

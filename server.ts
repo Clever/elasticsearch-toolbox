@@ -42,6 +42,15 @@ app.get("/aliases/update", (req, res) => {
   });
 });
 
+// Update all time-based index replicas and return the new replica state
+app.get("/replicas/update", (req, res) => {
+  es.update_replicas().then((replicas) => {
+    res.status(200).send(replicas);
+  }).catch((err) => {
+    res.status(500).send(err.message);
+  });
+});
+
 if (config.indices.clearAt) {
   console.log(`clearing indexes at '${config.indices.clearAt}'`);
   const job = new cron.CronJob({
@@ -59,7 +68,7 @@ if (config.indices.clearAt) {
 }
 
 if (config.aliases && config.aliases.updateAt) {
-  console.log(`updating aliases at at '${config.aliases.updateAt}'`);
+  console.log(`updating aliases at '${config.aliases.updateAt}'`);
   const job = new cron.CronJob({
     cronTime: config.aliases.updateAt,
     onTick: () => {
@@ -67,6 +76,22 @@ if (config.aliases && config.aliases.updateAt) {
         console.log("set aliases to", aliases);
       }).catch((err) => {
         console.error("failure updating aliases", err);
+      });
+    },
+    start: false,
+  });
+  job.start();
+}
+
+if (config.replicas && config.replicas.updateAt) {
+  console.log(`updating replicas at '${config.replicas.updateAt}'`);
+  const job = new cron.CronJob({
+    cronTime: config.replicas.updateAt,
+    onTick: () => {
+      es.update_replicas().then((replicas) => {
+        console.log("set replicas to", replicas);
+      }).catch((err) => {
+        console.error("failure updating replicas", err);
       });
     },
     start: false,

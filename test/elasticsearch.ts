@@ -13,8 +13,8 @@ describe("elasticsearch", () => {
   describe("get_indices", () => {
     it("should return a list of indices", (done) => {
       const fakeES = nock(process.env.ELASTICSEARCH_URL)
-        .get("/_stats?level=shards")
-        .reply(200, {indices: {index1: [], index2: [], ".kibana-4": []}});
+        .get("/*/_settings")
+        .reply(200, {index1: [], index2: [], ".kibana-4": []});
       const expected = ["index1", "index2"];
       es.get_indices().then((indices) => {
         assert.deepEqual(indices, expected);
@@ -26,12 +26,12 @@ describe("elasticsearch", () => {
 
   describe("clear_old_indices", () => {
     it("should make delete requests for all old indices", (done) => {
-      const expected = {indices: {}};
-      expected.indices[`logs-${format(today)}`] = [];
-      expected.indices[`logs-${format(yesterday)}`] = [];
-      expected.indices[`logs-${format(lastMonth)}`] = [];
+      const expected = {};
+      expected[`logs-${format(today)}`] = [];
+      expected[`logs-${format(yesterday)}`] = [];
+      expected[`logs-${format(lastMonth)}`] = [];
       const fakeES = nock(process.env.ELASTICSEARCH_URL)
-        .get("/_stats?level=shards")
+        .get("/*/_settings")
         .reply(200, expected)
         .delete(`/logs-${format(lastMonth)}`)
         .reply(200, {});
