@@ -22,20 +22,13 @@ function request_es(method, path, json) {
     const url = config.ELASTICSEARCH_URL + path;
     const opts = {
       url, auth,
-      body: undefined,
-      headers: undefined,
+      json: json || true,
     };
-    // We'd like to just use request's json option, but that assumes that the response will also be
-    // JSON, which is not the case with ES.
-    if (json != null) {
-      opts.body = JSON.stringify(json);
-      opts.headers = {"Content-type": "application/json"};
-    }
     request[meth](opts, (error, response, body) => {
       if (error != null) {
         reject(error);
       } else if (response.statusCode === 200) {
-        resolve(JSON.parse(body));
+        resolve(body);
       } else {
         reject(new Error(`Request failed with ${response.statusCode}`));
       }
