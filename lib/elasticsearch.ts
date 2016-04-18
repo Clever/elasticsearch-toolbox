@@ -153,6 +153,8 @@ function update_alias_state(current_indices, alias) {
       return;
     }
 
+    // To modify an alias, send a list of "actions" that look like:
+    //    { <add or remove>: { index: <index name>, alias: <alias name> } }
     const action_el = (action, index) => {
       const out = {};
       out[action] = {index, alias};
@@ -160,11 +162,10 @@ function update_alias_state(current_indices, alias) {
     };
     const actions = _.map(indices_to_remove, _.partial(action_el, "remove"))
       .concat(_.map(indices_to_add, _.partial(action_el, "add")));
+
     request_es("post", "/_aliases", {actions}).then(() => {
       resolve();
-    }).catch((err) => {
-      reject(err);
-    });
+    }).catch(reject);
   });
 }
 
