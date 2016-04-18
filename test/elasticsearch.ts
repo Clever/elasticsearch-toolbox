@@ -73,4 +73,46 @@ describe("elasticsearch", () => {
       }).catch(done);
     });
   });
+
+  describe("update_replicas", () => {
+    it("should make one command to put new index settings", (done) => {
+      const replicas1 = {
+        index: {
+          number_of_shards: 4,
+          number_of_replicas: 1,
+        },
+      };
+      const current = {};
+      current[`logs-${format(yesterday)}`] = {settings: replicas1};
+      current[`logs-${format(today)}`] = {settings: replicas1};
+
+      const replicas0 = {
+        index: {
+          number_of_shards: 4,
+          number_of_replicas: 0,
+        },
+      };
+      const adjusted = {};
+      adjusted[`logs-${format(yesterday)}`] = {settings: replicas0};
+      adjusted[`logs-${format(today)}`] = {settings: replicas1};
+
+      const fakeES = nock(process.env.ELASTICSEARCH_URL)
+        .get("/*/_settings")
+        .reply(200, current)
+        .post(`/logs-${format(yesterday)}/_settings`,
+              {index: {number_of_replicas: 0}})
+        .reply(200)
+        .get("/*/_settings")
+        .reply(200, adjusted);
+
+      const expected = {};
+      expected[`logs-${format(yesterday)}`] = {shards: 4, replicas: 0};
+      expected[`logs-${format(today)}`] = {shards: 4, replicas: 1};
+      es.update_replicas().then((indices_data) => {
+        assert.deepEqual(indices_data, expected);
+        fakeES.done();
+        done();
+      }).catch(done);
+    });
+  });
 });
