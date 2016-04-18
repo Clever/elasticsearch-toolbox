@@ -126,7 +126,7 @@ function get_aliases() {
   });
 }
 
-function remove_unmanaged_aliases(aliases) {
+function filter_managed_aliases(aliases) {
   return new Promise((resolve) => {
     for (const alias of Object.keys(aliases)) {
       if (!config.aliases.mappings[alias]) {
@@ -173,7 +173,7 @@ function remove_old_indices_from_aliases(aliases) {
 }
 
 export function update_aliases() {
-  return get_aliases().then(remove_unmanaged_aliases)
+  return get_aliases().then(filter_managed_aliases)
     .then(remove_old_indices_from_aliases)
-    .then(get_aliases).then(remove_unmanaged_aliases);
+    .then(get_aliases).then(filter_managed_aliases);
 }
