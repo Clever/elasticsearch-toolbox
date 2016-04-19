@@ -15,8 +15,6 @@ publish:
   catapult:
     url: $$catapult_url
     application: "elasticsearch-toolbox"
-    when:
-      branch: master
   docker:
     docker_host: $$docker_server
     email: $$docker_email
