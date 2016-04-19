@@ -54,3 +54,10 @@ if (conf.indices.aliases) {
     }
   }
 }
+
+if (conf.indices.replicas) {
+  module.exports.replicas = {};
+  for (const key of Object.keys(conf.indices.replicas)) {
+    module.exports.replicas[key] = conf.indices.replicas[key];
+  }
+}

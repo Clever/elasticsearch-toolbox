@@ -13,8 +13,8 @@ describe("elasticsearch", () => {
   describe("get_indices", () => {
     it("should return a list of indices", (done) => {
       const fakeES = nock(process.env.ELASTICSEARCH_URL)
-        .get("/_stats?level=shards")
-        .reply(200, {indices: {index1: [], index2: [], ".kibana-4": []}});
+        .get("/*/_settings")
+        .reply(200, {index1: [], index2: [], ".kibana-4": []});
       const expected = ["index1", "index2"];
       es.get_indices().then((indices) => {
         assert.deepEqual(indices, expected);
@@ -26,12 +26,12 @@ describe("elasticsearch", () => {
 
   describe("clear_old_indices", () => {
     it("should make delete requests for all old indices", (done) => {
-      const expected = {indices: {}};
-      expected.indices[`logs-${format(today)}`] = [];
-      expected.indices[`logs-${format(yesterday)}`] = [];
-      expected.indices[`logs-${format(lastMonth)}`] = [];
+      const expected = {};
+      expected[`logs-${format(today)}`] = [];
+      expected[`logs-${format(yesterday)}`] = [];
+      expected[`logs-${format(lastMonth)}`] = [];
       const fakeES = nock(process.env.ELASTICSEARCH_URL)
-        .get("/_stats?level=shards")
+        .get("/*/_settings")
         .reply(200, expected)
         .delete(`/logs-${format(lastMonth)}`)
         .reply(200, {});
@@ -68,6 +68,48 @@ describe("elasticsearch", () => {
       es.update_aliases().then((aliases) => {
         assert.deepEqual(aliases,
                          {last_2days: [`logs-${format(yesterday)}`, `logs-${format(today)}`]});
+        fakeES.done();
+        done();
+      }).catch(done);
+    });
+  });
+
+  describe("update_replicas", () => {
+    it("should make one command to put new index settings", (done) => {
+      const replicas1 = {
+        index: {
+          number_of_shards: 4,
+          number_of_replicas: 1,
+        },
+      };
+      const current = {};
+      current[`logs-${format(yesterday)}`] = {settings: replicas1};
+      current[`logs-${format(today)}`] = {settings: replicas1};
+
+      const replicas0 = {
+        index: {
+          number_of_shards: 4,
+          number_of_replicas: 0,
+        },
+      };
+      const adjusted = {};
+      adjusted[`logs-${format(yesterday)}`] = {settings: replicas0};
+      adjusted[`logs-${format(today)}`] = {settings: replicas1};
+
+      const fakeES = nock(process.env.ELASTICSEARCH_URL)
+        .get("/*/_settings")
+        .reply(200, current)
+        .post(`/logs-${format(yesterday)}/_settings`,
+              {index: {number_of_replicas: 0}})
+        .reply(200)
+        .get("/*/_settings")
+        .reply(200, adjusted);
+
+      const expected = {};
+      expected[`logs-${format(yesterday)}`] = {shards: 4, replicas: 0};
+      expected[`logs-${format(today)}`] = {shards: 4, replicas: 1};
+      es.update_replicas().then((indices_data) => {
+        assert.deepEqual(indices_data, expected);
         fakeES.done();
         done();
       }).catch(done);

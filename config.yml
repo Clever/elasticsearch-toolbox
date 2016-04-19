@@ -11,3 +11,8 @@ indices:
     last_2days: 2
     # OPTIONAL: Cron timestamp in UTC. If specified, the aliases will be updated at that interval.
     updateAt: "0 0 0 * * *"
+  # OPTIONAL: Change the replicas for indices older than `days` to the new quantity `value`.
+  replicas:
+    days: 1
+    value: 0
+    updateAt: "0 0 9 * * *" # 2 am PT is 9 am UTC
