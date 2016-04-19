@@ -30,7 +30,7 @@ function request_es(method, path, json) {
       } else if (response.statusCode === 200) {
         resolve(body);
       } else {
-        reject(new Error(`Request failed with ${response.statusCode}`));
+        reject(new Error(`Elasticsearch request failed with ${response.statusCode}: ${JSON.stringify(body)}`));
       }
     });
   });
@@ -210,7 +210,7 @@ function filter_replica_indices(current_indices) {
 // apply configured replica settings to an index
 function set_replica_state(index) {
   const new_setting = {index: {number_of_replicas: config.indices.replicas.value}};
-  return request_es("post", `/${index}/_settings`, new_setting);
+  return request_es("put", `/${index}/_settings`, new_setting);
 }
 
 // apply configured replica settings to a list of indices
