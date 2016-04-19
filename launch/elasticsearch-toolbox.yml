@@ -4,6 +4,7 @@ env:
 - ELASTICSEARCH_URL
 - ELASTICSEARCH_USER
 - ELASTICSEARCH_PASSWORD
+- PORT
 resources:
   cpu: 0.1
 expose:

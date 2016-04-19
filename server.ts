@@ -7,17 +7,19 @@ if (+major < 5) {
 
 var cron    = require("cron");
 var express = require("express");
+var kayvee  = require("kayvee");
 
 var config  = require("./config");
 var es      = require("./lib/elasticsearch");
 
 
 var app = express();
+app.use(kayvee.middleware({source: "elasticsearch-toolbox"}));
 app.use("/static", express.static("static"));
 
 // elb check
 app.get("/elb/check", (req, res) => {
-  res.status(200).send();
+  res.status(200).end();
 });
 
 // list the indicies as a json object
