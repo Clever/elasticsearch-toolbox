@@ -99,8 +99,8 @@ describe("elasticsearch", () => {
       const fakeES = nock(process.env.ELASTICSEARCH_URL)
         .get("/*/_settings")
         .reply(200, current)
-        .post(`/logs-${format(yesterday)}/_settings`,
-              {index: {number_of_replicas: 0}})
+        .put(`/logs-${format(yesterday)}/_settings`,
+             {index: {number_of_replicas: 0}})
         .reply(200)
         .get("/*/_settings")
         .reply(200, adjusted);
