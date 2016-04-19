@@ -15,6 +15,11 @@ var es      = require("./lib/elasticsearch");
 var app = express();
 app.use("/static", express.static("static"));
 
+// elb check
+app.get("/elb/check", (req, res) => {
+  res.status(200).send();
+});
+
 // list the indicies as a json object
 app.get("/status/indices", (req, res) => {
   es.get_index_shards().then((indices) => {
