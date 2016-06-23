@@ -16,3 +16,4 @@ expose:
     path: /elb/check
 shepherds:
 - ryan.burns@clever.com
+team: eng-infra
