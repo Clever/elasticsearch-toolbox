@@ -15,7 +15,7 @@ describe("elasticsearch", () => {
       const fakeES = nock(process.env.ELASTICSEARCH_URL)
         .get("/*/_settings")
         .reply(200, {index1: [], index2: [], ".kibana-4": []});
-      const expected = ["index1", "index2"];
+      const expected = [".kibana-4", "index1", "index2"];
       es.get_indices().then((indices) => {
         assert.deepEqual(indices, expected);
         fakeES.done();
@@ -26,13 +26,15 @@ describe("elasticsearch", () => {
 
   describe("clear_old_indices", () => {
     it("should make delete requests for all old indices", (done) => {
-      const expected = {};
-      expected[`logs-${format(today)}`] = [];
-      expected[`logs-${format(yesterday)}`] = [];
-      expected[`logs-${format(lastMonth)}`] = [];
+      const returned_indices = {};
+      returned_indices[".kibana-4"] = [];
+      returned_indices["my-unmanaged-index"] = [];
+      returned_indices[`logs-${format(today)}`] = [];
+      returned_indices[`logs-${format(yesterday)}`] = [];
+      returned_indices[`logs-${format(lastMonth)}`] = [];
       const fakeES = nock(process.env.ELASTICSEARCH_URL)
         .get("/*/_settings")
-        .reply(200, expected)
+        .reply(200, returned_indices)
         .delete(`/logs-${format(lastMonth)}`)
         .reply(200, {});
       es.clear_old_indices().then((indices) => {
@@ -46,6 +48,8 @@ describe("elasticsearch", () => {
   describe("update_aliases", () => {
     it("should make one command to put aliases to the right state", (done) => {
       const current = {};
+      current[".kibana-4"] = {aliases: {}};
+      current["my-unmanaged-index"] = {aliases: {}};
       current[`logs-${format(yesterday)}`] = {aliases: {last_2days: {}}};
       current[`logs-${format(lastMonth)}`] = {aliases: {last_2days: {}}};
 
