@@ -45,16 +45,7 @@ function get_es(path) {
 }
 
 function get_index_settings() {
-  return get_es("/*/_settings").then((data) => {
-    const settings = {};
-    Object.keys(data).forEach((key) => {
-      // filter out the kibana index
-      if (key.indexOf(".kibana") < 0) {
-        settings[key] = data[key];
-      }
-    });
-    return settings;
-  });
+  return get_es("/*/_settings");
 }
 
 export function get_index_shards() {
@@ -74,6 +65,22 @@ export function get_indices() {
   return get_index_settings().then((data) => Object.keys(data).sort());
 }
 
+// Filters out indices that are not managed (so that they are ignored)
+function filter_managed_indices(all_indices) {
+  return new Promise((resolve) => {
+    const managed_indices = [];
+    all_indices.forEach((index) => {
+      // filter out indices that don't match the prefix
+      if (index.indexOf(config.indices.prefix) === 0) {
+        managed_indices.push(index);
+      }
+    });
+    resolve(managed_indices);
+  });
+}
+
+// Filers out all indices that should be kept (returns old indices)
+// NOTE: also relies on the list being pre-filtered to only include managed indices
 function filter_old_indices(current_indices) {
   return new Promise((resolve) => {
     const acceptable_indices = [];
@@ -98,7 +105,7 @@ function delete_indices(indices) {
 }
 
 export function clear_old_indices() {
-  return get_indices().then(filter_old_indices).then(delete_indices);
+  return get_indices().then(filter_managed_indices).then(filter_old_indices).then(delete_indices);
 }
 
 function get_aliases() {
@@ -121,10 +128,6 @@ function get_aliases() {
     // It's much easier to work with a map from alias name to list of indexes in the alias.
     const aliases = {};
     for (const index of Object.keys(indices)) {
-      // Filter out the kibana index
-      if (index.indexOf(".kibana") !== -1) {
-        continue;
-      }
       for (const alias of Object.keys(indices[index].aliases)) {
         if (!aliases[alias]) {
           aliases[alias] = [];
