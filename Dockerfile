@@ -1,4 +1,4 @@
-FROM node:5.7.0-slim
+FROM node:6.2.2-slim
 
 WORKDIR /elasticsearch-toolbox
 
