@@ -30,7 +30,7 @@ function request_es(method, path, json) {
       } else if (response.statusCode === 200) {
         resolve(body);
       } else {
-        reject(new Error(`Elasticsearch request failed with ${response.statusCode}: ${JSON.stringify(body)}`));
+        reject(new Error(`Elasticsearch ${meth} request to ${path} failed with ${response.statusCode}: ${JSON.stringify(body)}`));
       }
     });
   });
