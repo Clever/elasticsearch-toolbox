@@ -84,7 +84,7 @@ if (config.aliases && config.aliases.updateAt) {
       es.update_aliases().then((aliases) => {
         log.infoD("updated_aliases", {aliases});
       }).catch((err) => {
-        log.errorD("update_aliases_failure": {error: err, stack: err.stack});
+        log.errorD("update_aliases_failure", {error: err, stack: err.stack});
       });
     },
     start: false,
@@ -100,7 +100,7 @@ if (config.replicas && config.replicas.updateAt) {
       es.update_replicas().then((replicas) => {
         log.infoD("updated_replicas", {replicas});
       }).catch((err) => {
-        log.errorD("update_replicas_failure": {error: err, stack: err.stack});
+        log.errorD("update_replicas_failure", {error: err, stack: err.stack});
       });
     },
     start: false,
