@@ -12,6 +12,8 @@ var kayvee  = require("kayvee");
 var config  = require("./config");
 var es      = require("./lib/elasticsearch");
 
+// kayvee logger
+const log = new kayvee.logger("elasticsearch-toolbox");
 
 var app = express();
 app.use(kayvee.middleware({source: "elasticsearch-toolbox"}));
@@ -59,14 +61,14 @@ app.get("/replicas/update", (req, res) => {
 });
 
 if (config.indices.clearAt) {
-  console.log(`clearing indexes at '${config.indices.clearAt}'`);
+  log.infoD("clearing_indices_interval", {interval: config.indices.clearAt});
   const job = new cron.CronJob({
     cronTime: config.indices.clearAt,
     onTick: () => {
       es.clear_old_indices().then((indices) => {
-        console.log("deleted indices", indices);
+        log.infoD("cleared_indices", {indices});
       }).catch((err) => {
-        console.error("failure clearing old indices", err);
+        log.errorD("clear_indices_failure", {error: err, stack: err.stack});
       });
     },
     start: false,
@@ -75,14 +77,14 @@ if (config.indices.clearAt) {
 }
 
 if (config.aliases && config.aliases.updateAt) {
-  console.log(`updating aliases at '${config.aliases.updateAt}'`);
+  log.infoD("updating_aliases_interval", {interval: config.aliases.updateAt});
   const job = new cron.CronJob({
     cronTime: config.aliases.updateAt,
     onTick: () => {
       es.update_aliases().then((aliases) => {
-        console.log("set aliases to", aliases);
+        log.infoD("updated_aliases", {aliases});
       }).catch((err) => {
-        console.error("failure updating aliases", err);
+        log.errorD("update_aliases_failure": {error: err, stack: err.stack});
       });
     },
     start: false,
@@ -91,14 +93,14 @@ if (config.aliases && config.aliases.updateAt) {
 }
 
 if (config.replicas && config.replicas.updateAt) {
-  console.log(`updating replicas at '${config.replicas.updateAt}'`);
+  log.infoD("updating_replicas_interval", {interval: config.replicas.updateAt});
   const job = new cron.CronJob({
     cronTime: config.replicas.updateAt,
     onTick: () => {
       es.update_replicas().then((replicas) => {
-        console.log("set replicas to", replicas);
+        log.infoD("updated_replicas", {replicas});
       }).catch((err) => {
-        console.error("failure updating replicas", err);
+        log.errorD("update_replicas_failure": {error: err, stack: err.stack});
       });
     },
     start: false,
@@ -108,7 +110,7 @@ if (config.replicas && config.replicas.updateAt) {
 
 if (require.main === module) {
   app.listen(config.PORT, () => {
-    console.log(`Server listening on port ${config.PORT}`);
-    console.log(`ES backend: ${config.ELASTICSEARCH_URL}`);
+    log.infoD("server_listening", {port: config.PORT});
+    log.infoD("ES_backend", {es_url: config.ELASTICSEARCH_URL});
   });
 }
