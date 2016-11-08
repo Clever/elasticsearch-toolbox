@@ -1,4 +1,4 @@
-var _       = require("underscore");
+var _       = require("lodash");
 var moment  = require("moment");
 var request = require("request");
 
@@ -16,7 +16,7 @@ function request_es(method, path, json) {
   return new Promise((resolve, reject) => {
     // For safety, don't assume the method comes in in a consistent case.
     const meth = method.toLowerCase();
-    if (!_.contains(["put", "patch", "post", "head", "del", "get"], meth)) {
+    if (!_.includes(["put", "patch", "post", "head", "del", "get"], meth)) {
       reject(new Error(`Invalid method ${meth}`));
     }
     const url = config.ELASTICSEARCH_URL + path;
