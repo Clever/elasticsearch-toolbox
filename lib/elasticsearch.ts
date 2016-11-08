@@ -101,7 +101,10 @@ function delete_index(index) {
 }
 
 function delete_indices(indices) {
-  return Promise.all(_.map(indices, delete_index));
+  // group indices together so we can use less requests
+  // ["log1", "log2", "log3", ...] => ["log1,log2,log3", "log4,log5,log6"]
+  const grouped_indices = _.chain(indices).chunk(20).map((arr) => arr.join(",")).value();
+  return Promise.all(_.map(grouped_indices, delete_index));
 }
 
 export function clear_old_indices() {

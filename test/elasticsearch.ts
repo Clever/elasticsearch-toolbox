@@ -1,3 +1,4 @@
+var _       = require("lodash");
 var assert  = require("assert");
 var moment  = require("moment");
 var nock    = require("nock");
@@ -39,6 +40,36 @@ describe("elasticsearch", () => {
         .reply(200, {});
       es.clear_old_indices().then((indices) => {
         assert.deepEqual(indices, [`logs-${format(lastMonth)}`]);
+        fakeES.done();
+        done();
+      }).catch(done);
+    });
+
+    it("should chunk up delete requests for all old indices", (done) => {
+      const returned_indices = {};
+      for (let i = 0; i < 30; i++) {
+        const old_date = format(moment().subtract(1, "month").subtract(i, "days"));
+        returned_indices[`logs-${old_date}`] = [];
+      }
+
+      const deleted_indices = _.chain(returned_indices)
+        .keys()
+        .sort()
+        .chunk(20)
+        .map((arr) => arr.join(","))
+        .value();
+
+      var fakeES = nock(process.env.ELASTICSEARCH_URL)
+        .get("/*/_settings")
+        .reply(200, returned_indices);
+      for (const i of deleted_indices) {
+        fakeES = fakeES
+          .delete(`/${i}`)
+          .reply(200, {});
+      }
+
+      es.clear_old_indices().then((indices) => {
+        assert.deepEqual(indices, deleted_indices);
         fakeES.done();
         done();
       }).catch(done);
