@@ -46,8 +46,10 @@ describe("elasticsearch", () => {
     });
 
     it("should chunk up delete requests for all old indices", (done) => {
+      const chunksize = 20;
+      const totalindices = 110;
       const returned_indices = {};
-      for (let i = 0; i < 30; i++) {
+      for (let i = 0; i < totalindices; i++) {
         const old_date = format(moment().subtract(1, "month").subtract(i, "days"));
         returned_indices[`logs-${old_date}`] = [];
       }
@@ -55,7 +57,7 @@ describe("elasticsearch", () => {
       const deleted_indices = _.chain(returned_indices)
         .keys()
         .sort()
-        .chunk(20)
+        .chunk(chunksize)
         .map((arr) => arr.join(","))
         .value();
 
@@ -68,7 +70,7 @@ describe("elasticsearch", () => {
           .reply(200, {});
       }
 
-      es.clear_old_indices().then((indices) => {
+      es.clear_old_indices(chunksize).then((indices) => {
         assert.deepEqual(indices, deleted_indices);
         fakeES.done();
         done();
