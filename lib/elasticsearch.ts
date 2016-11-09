@@ -1,4 +1,4 @@
-var _       = require("underscore");
+var _       = require("lodash");
 var moment  = require("moment");
 var request = require("request");
 
@@ -16,7 +16,7 @@ function request_es(method, path, json) {
   return new Promise((resolve, reject) => {
     // For safety, don't assume the method comes in in a consistent case.
     const meth = method.toLowerCase();
-    if (!_.contains(["put", "patch", "post", "head", "del", "get"], meth)) {
+    if (!_.includes(["put", "patch", "post", "head", "del", "get"], meth)) {
       reject(new Error(`Invalid method ${meth}`));
     }
     const url = config.ELASTICSEARCH_URL + path;
@@ -100,12 +100,21 @@ function delete_index(index) {
   return request_es_no_body("del", `/${index}`).then(() => index);
 }
 
-function delete_indices(indices) {
-  return Promise.all(_.map(indices, delete_index));
+// delete_indices returns a function that will delete all the indices at the specified chunk size
+function delete_indices(chunksize) {
+  return function f(indices) {
+    // group indices together so we can use less requests
+    // ["log1", "log2", "log3", ...] => ["log1,log2,log3", "log4,log5,log6"]
+    const grouped_indices = _.chain(indices).chunk(chunksize).map((arr) => arr.join(",")).value();
+    return Promise.all(_.map(grouped_indices, delete_index));
+  };
 }
 
-export function clear_old_indices() {
-  return get_indices().then(filter_managed_indices).then(filter_old_indices).then(delete_indices);
+export function clear_old_indices(chunksize = 20) {
+  return get_indices()
+    .then(filter_managed_indices)
+    .then(filter_old_indices)
+    .then(delete_indices(chunksize));
 }
 
 function get_aliases() {
