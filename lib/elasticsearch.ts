@@ -1,9 +1,11 @@
 var _       = require("lodash");
 var moment  = require("moment");
 var request = require("request");
+var Promise = require("bluebird");
 
 var config  = require("../config");
 
+const concurrency = {concurrency: 3};
 const auth = {
   user: config.ELASTICSEARCH_USER,
   pass: config.ELASTICSEARCH_PASSWORD,
@@ -106,7 +108,7 @@ function delete_indices(chunksize) {
     // group indices together so we can use less requests
     // ["log1", "log2", "log3", ...] => ["log1,log2,log3", "log4,log5,log6"]
     const grouped_indices = _.chain(indices).chunk(chunksize).map((arr) => arr.join(",")).value();
-    return Promise.all(_.map(grouped_indices, delete_index));
+    return Promise.map(grouped_indices, delete_index, concurrency);
   };
 }
 
@@ -195,7 +197,7 @@ function update_alias_state(current_indices, alias) {
 }
 
 function remove_old_indices_from_aliases(aliases) {
-  return Promise.all(_.map(aliases, update_alias_state));
+  return Promise.map(aliases, update_alias_state, concurrency);
 }
 
 export function update_aliases() {
@@ -227,7 +229,7 @@ function set_replica_state(index) {
 
 // apply configured replica settings to a list of indices
 function apply_replica_settings(indices) {
-  return Promise.all(_.map(indices, set_replica_state));
+  return Promise.map(indices, set_replica_state, concurrency);
 }
 
 export function update_replicas() {
