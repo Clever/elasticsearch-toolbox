@@ -60,12 +60,26 @@ app.get("/replicas/update", (req, res) => {
   });
 });
 
+function retry(promise, count, delay) {
+  return new Promise((resolve, reject) => {
+    promise()
+      .then(resolve)
+      .catch((err) => {
+        if (count <= 0) {
+          reject(err);
+        } else {
+          return retry(promise, count - 1, 2 * delay);
+        }
+      });
+  });
+}
+
 if (config.indices.clearAt) {
   log.infoD("clearing_indices_interval", {interval: config.indices.clearAt});
   const job = new cron.CronJob({
     cronTime: config.indices.clearAt,
     onTick: () => {
-      es.clear_old_indices().then((indices) => {
+      retry(() => es.clear_old_indices(), 3, 0).then((indices) => {
         log.infoD("cleared_indices", {indices});
       }).catch((err) => {
         log.errorD("clear_indices_failure", {error: err, stack: err.stack});
