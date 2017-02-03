@@ -1,13 +1,13 @@
-var _       = require("lodash");
-var moment  = require("moment");
+var _ = require("lodash");
+var moment = require("moment");
 var request = require("request");
 
-var config  = require("../config");
+var config = require("../config");
 
 const auth = {
   user: config.ELASTICSEARCH_USER,
   pass: config.ELASTICSEARCH_PASSWORD,
-  sendImmediately: false,
+  sendImmediately: false
 };
 
 // Helper function to make ES queries. Pass it a method, a path to query, and an optional body and
@@ -21,8 +21,9 @@ function request_es(method, path, json) {
     }
     const url = config.ELASTICSEARCH_URL + path;
     const opts = {
-      url, auth,
-      json: json || true,
+      url,
+      auth,
+      json: json || true
     };
     request[meth](opts, (error, response, body) => {
       if (error != null) {
@@ -30,7 +31,11 @@ function request_es(method, path, json) {
       } else if (response.statusCode === 200) {
         resolve(body);
       } else {
-        reject(new Error(`Elasticsearch ${meth} request to ${path} failed with ${response.statusCode}: ${JSON.stringify(body)}`));
+        reject(new Error(
+          `Elasticsearch ${meth} request to ${path} failed with ${response.statusCode}: ${JSON.stringify(
+            body
+          )}`
+        ));
       }
     });
   });
@@ -49,12 +54,12 @@ function get_index_settings() {
 }
 
 export function get_index_shards() {
-  return get_index_settings().then((data) => {
+  return get_index_settings().then(data => {
     const shard_map = {};
-    Object.keys(data).forEach((key) => {
+    Object.keys(data).forEach(key => {
       shard_map[key] = {
         shards: data[key].settings.index.number_of_shards,
-        replicas: data[key].settings.index.number_of_replicas,
+        replicas: data[key].settings.index.number_of_replicas
       };
     });
     return shard_map;
@@ -62,14 +67,14 @@ export function get_index_shards() {
 }
 
 export function get_indices() {
-  return get_index_settings().then((data) => Object.keys(data).sort());
+  return get_index_settings().then(data => Object.keys(data).sort());
 }
 
 // Filters out indices that are not managed (so that they are ignored)
 function filter_managed_indices(all_indices) {
-  return new Promise((resolve) => {
+  return new Promise(resolve => {
     const managed_indices = [];
-    all_indices.forEach((index) => {
+    all_indices.forEach(index => {
       // filter out indices that don't match the prefix
       if (index.indexOf(config.indices.prefix) === 0) {
         managed_indices.push(index);
@@ -82,11 +87,13 @@ function filter_managed_indices(all_indices) {
 // Filers out all indices that should be kept (returns old indices)
 // NOTE: also relies on the list being pre-filtered to only include managed indices
 function filter_old_indices(current_indices) {
-  return new Promise((resolve) => {
+  return new Promise(resolve => {
     const acceptable_indices = [];
     let today = moment();
     for (let i = 0; i < config.indices.days; i++) {
-      acceptable_indices.push(`${config.indices.prefix}-${today.format("YYYY.MM.DD")}`);
+      acceptable_indices.push(
+        `${config.indices.prefix}-${today.format("YYYY.MM.DD")}`
+      );
       today = today.subtract(1, "days");
     }
     const indices = _.difference(current_indices, acceptable_indices);
@@ -105,7 +112,10 @@ function delete_indices(chunksize) {
   return function f(indices) {
     // group indices together so we can use less requests
     // ["log1", "log2", "log3", ...] => ["log1,log2,log3", "log4,log5,log6"]
-    const grouped_indices = _.chain(indices).chunk(chunksize).map((arr) => arr.join(",")).value();
+    const grouped_indices = _.chain(indices)
+      .chunk(chunksize)
+      .map(arr => arr.join(","))
+      .value();
     return Promise.all(_.map(grouped_indices, delete_index));
   };
 }
@@ -118,7 +128,7 @@ export function clear_old_indices(chunksize = 20) {
 }
 
 function get_aliases() {
-  return get_es("/_aliases").then((indices) => {
+  return get_es("/_aliases").then(indices => {
     // The aliases endpoint returns a map from index name to metadata about those indexes.
     // e.g.
     //   {
@@ -143,7 +153,10 @@ function get_aliases() {
         }
         aliases[alias].push(index);
         // Keep the results sorted and unique
-        aliases[alias] = _.chain(aliases[alias]).sortBy(_.identity).uniq(true).value();
+        aliases[alias] = _.chain(aliases[alias])
+          .sortBy(_.identity)
+          .uniq(true)
+          .value();
       }
     }
 
@@ -152,7 +165,7 @@ function get_aliases() {
 }
 
 function filter_managed_aliases(aliases) {
-  return new Promise((resolve) => {
+  return new Promise(resolve => {
     for (const alias of Object.keys(aliases)) {
       if (!config.aliases.mappings[alias]) {
         delete aliases[alias];
@@ -167,7 +180,9 @@ function update_alias_state(current_indices, alias) {
     const acceptable_indices = [];
     let today = moment();
     for (let i = 0; i < config.aliases.mappings[alias]; i++) {
-      acceptable_indices.push(`${config.indices.prefix}-${today.format("YYYY.MM.DD")}`);
+      acceptable_indices.push(
+        `${config.indices.prefix}-${today.format("YYYY.MM.DD")}`
+      );
       today = today.subtract(1, "days");
     }
     const indices_to_remove = _.difference(current_indices, acceptable_indices);
@@ -185,12 +200,16 @@ function update_alias_state(current_indices, alias) {
       out[action] = {index, alias};
       return out;
     };
-    const actions = _.map(indices_to_remove, _.partial(action_el, "remove"))
-      .concat(_.map(indices_to_add, _.partial(action_el, "add")));
+    const actions = _.map(
+      indices_to_remove,
+      _.partial(action_el, "remove")
+    ).concat(_.map(indices_to_add, _.partial(action_el, "add")));
 
-    request_es("post", "/_aliases", {actions}).then(() => {
-      resolve();
-    }).catch(reject);
+    request_es("post", "/_aliases", {actions})
+      .then(() => {
+        resolve();
+      })
+      .catch(reject);
   });
 }
 
@@ -199,19 +218,22 @@ function remove_old_indices_from_aliases(aliases) {
 }
 
 export function update_aliases() {
-  return get_aliases().then(filter_managed_aliases)
+  return get_aliases()
+    .then(filter_managed_aliases)
     .then(remove_old_indices_from_aliases)
-    .then(get_aliases).then(filter_managed_aliases);
+    .then(get_aliases)
+    .then(filter_managed_aliases);
 }
-
 
 // filters out indices based on config.indices.replica.days
 function filter_replica_indices(current_indices) {
-  return new Promise((resolve) => {
+  return new Promise(resolve => {
     const ignore_indices = [];
     let today = moment();
     for (let i = 0; i < config.indices.replicas.days; i++) {
-      ignore_indices.push(`${config.indices.prefix}-${today.format("YYYY.MM.DD")}`);
+      ignore_indices.push(
+        `${config.indices.prefix}-${today.format("YYYY.MM.DD")}`
+      );
       today = today.subtract(1, "days");
     }
     const indices = _.difference(current_indices, ignore_indices);
@@ -221,7 +243,9 @@ function filter_replica_indices(current_indices) {
 
 // apply configured replica settings to an index
 function set_replica_state(index) {
-  const new_setting = {index: {number_of_replicas: config.indices.replicas.value}};
+  const new_setting = {
+    index: {number_of_replicas: config.indices.replicas.value}
+  };
   return request_es("put", `/${index}/_settings`, new_setting);
 }
 
@@ -231,7 +255,8 @@ function apply_replica_settings(indices) {
 }
 
 export function update_replicas() {
-  return get_indices().then(filter_replica_indices)
+  return get_indices()
+    .then(filter_replica_indices)
     .then(apply_replica_settings)
     .then(get_index_shards);
 }

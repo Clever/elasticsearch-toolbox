@@ -1,14 +1,13 @@
-var fs   = require("fs");
+var fs = require("fs");
 var yaml = require("js-yaml");
 
 const missing_vars = [];
 const env_var_defaults = {
-  PORT:                   8001,
-  ELASTICSEARCH_URL:      null,
-  ELASTICSEARCH_USER:     null,
-  ELASTICSEARCH_PASSWORD: null,
+  PORT: 8001,
+  ELASTICSEARCH_URL: null,
+  ELASTICSEARCH_USER: null,
+  ELASTICSEARCH_PASSWORD: null
 };
-
 
 // Set Environment variables
 for (const key of Object.keys(env_var_defaults)) {
