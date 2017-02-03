@@ -27,8 +27,7 @@ lint:
 	./node_modules/.bin/eslint --fix $(TS_FILES)
 
 format:
-	npm install -g prettier
-	prettier --bracket-spacing false --write $(TS_FILES)
+	./node_modules/.bin/prettier --bracket-spacing false --write $(TS_FILES)
 
 test: lint $(TESTS)
 
