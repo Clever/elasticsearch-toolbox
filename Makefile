@@ -26,6 +26,9 @@ lint:
 	./node_modules/.bin/tslint $(TS_FILES)
 	./node_modules/.bin/eslint $(TS_FILES)
 
+format:
+	prettier --write $(TS_FILES)
+
 test: lint $(TESTS)
 
 $(TESTS):
