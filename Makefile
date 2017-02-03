@@ -28,6 +28,7 @@ lint:
 
 format:
 	./node_modules/.bin/prettier --bracket-spacing false --write $(TS_FILES)
+	./node_modules/.bin/eslint --fix $(TS_FILES)
 
 test: lint $(TESTS)
 
