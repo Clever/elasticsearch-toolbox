@@ -6,7 +6,7 @@ const env_var_defaults = {
   PORT: 8001,
   ELASTICSEARCH_URL: null,
   ELASTICSEARCH_USER: null,
-  ELASTICSEARCH_PASSWORD: null
+  ELASTICSEARCH_PASSWORD: null,
 };
 
 // Set Environment variables

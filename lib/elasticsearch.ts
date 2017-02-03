@@ -7,7 +7,7 @@ var config = require("../config");
 const auth = {
   user: config.ELASTICSEARCH_USER,
   pass: config.ELASTICSEARCH_PASSWORD,
-  sendImmediately: false
+  sendImmediately: false,
 };
 
 // Helper function to make ES queries. Pass it a method, a path to query, and an optional body and
@@ -23,7 +23,7 @@ function request_es(method, path, json) {
     const opts = {
       url,
       auth,
-      json: json || true
+      json: json || true,
     };
     request[meth](opts, (error, response, body) => {
       if (error != null) {
@@ -59,7 +59,7 @@ export function get_index_shards() {
     Object.keys(data).forEach(key => {
       shard_map[key] = {
         shards: data[key].settings.index.number_of_shards,
-        replicas: data[key].settings.index.number_of_replicas
+        replicas: data[key].settings.index.number_of_replicas,
       };
     });
     return shard_map;
@@ -244,7 +244,7 @@ function filter_replica_indices(current_indices) {
 // apply configured replica settings to an index
 function set_replica_state(index) {
   const new_setting = {
-    index: {number_of_replicas: config.indices.replicas.value}
+    index: {number_of_replicas: config.indices.replicas.value},
   };
   return request_es("put", `/${index}/_settings`, new_setting);
 }

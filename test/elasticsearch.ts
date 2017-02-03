@@ -105,8 +105,8 @@ describe("elasticsearch", () => {
         .post("/_aliases", {
           actions: [
             {remove: {index: `logs-${format(lastMonth)}`, alias: "last_2days"}},
-            {add: {index: `logs-${format(today)}`, alias: "last_2days"}}
-          ]
+            {add: {index: `logs-${format(today)}`, alias: "last_2days"}},
+          ],
         })
         .reply(200)
         .get("/_aliases")
@@ -115,7 +115,7 @@ describe("elasticsearch", () => {
         .update_aliases()
         .then(aliases => {
           assert.deepEqual(aliases, {
-            last_2days: [`logs-${format(yesterday)}`, `logs-${format(today)}`]
+            last_2days: [`logs-${format(yesterday)}`, `logs-${format(today)}`],
           });
           fakeES.done();
           done();
@@ -129,8 +129,8 @@ describe("elasticsearch", () => {
       const replicas1 = {
         index: {
           number_of_shards: 4,
-          number_of_replicas: 1
-        }
+          number_of_replicas: 1,
+        },
       };
       const current = {};
       current[`logs-${format(yesterday)}`] = {settings: replicas1};
@@ -139,8 +139,8 @@ describe("elasticsearch", () => {
       const replicas0 = {
         index: {
           number_of_shards: 4,
-          number_of_replicas: 0
-        }
+          number_of_replicas: 0,
+        },
       };
       const adjusted = {};
       adjusted[`logs-${format(yesterday)}`] = {settings: replicas0};
@@ -150,7 +150,7 @@ describe("elasticsearch", () => {
         .get("/*/_settings")
         .reply(200, current)
         .put(`/logs-${format(yesterday)}/_settings`, {
-          index: {number_of_replicas: 0}
+          index: {number_of_replicas: 0},
         })
         .reply(200)
         .get("/*/_settings")

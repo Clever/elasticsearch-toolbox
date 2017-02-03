@@ -89,7 +89,7 @@ if (config.indices.clearAt) {
           log.errorD("clear_indices_failure", {error: err, stack: err.stack});
         });
     },
-    start: false
+    start: false,
   });
   job.start();
 }
@@ -108,7 +108,7 @@ if (config.aliases && config.aliases.updateAt) {
           log.errorD("update_aliases_failure", {error: err, stack: err.stack});
         });
     },
-    start: false
+    start: false,
   });
   job.start();
 }
@@ -127,7 +127,7 @@ if (config.replicas && config.replicas.updateAt) {
           log.errorD("update_replicas_failure", {error: err, stack: err.stack});
         });
     },
-    start: false
+    start: false,
   });
   job.start();
 }
