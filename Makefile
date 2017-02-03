@@ -24,10 +24,11 @@ run:
 
 lint:
 	./node_modules/.bin/tslint $(TS_FILES)
-	./node_modules/.bin/eslint $(TS_FILES)
+	./node_modules/.bin/eslint --fix $(TS_FILES)
 
 format:
-	prettier --write $(TS_FILES)
+	npm install -g prettier
+	prettier --bracket-spacing false --write $(TS_FILES)
 
 test: lint $(TESTS)
 
