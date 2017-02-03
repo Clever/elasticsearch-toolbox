@@ -24,7 +24,7 @@ run:
 
 lint:
 	./node_modules/.bin/tslint $(TS_FILES)
-	./node_modules/.bin/eslint --fix $(TS_FILES)
+	./node_modules/.bin/eslint $(TS_FILES)
 
 format:
 	./node_modules/.bin/prettier --bracket-spacing false --write $(TS_FILES)
