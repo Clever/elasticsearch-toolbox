@@ -86,7 +86,7 @@ function filter_old_indices(current_indices) {
     const acceptable_indices = [];
     let today = moment();
     for (let i = 0; i < config.indices.days; i++) {
-      acceptable_indices.push(`${config.indices.prefix}-${today.format("YYYY.MM.DD")}`);
+      acceptable_indices.push(`${config.indices.prefix}-${today.format("YYYY-MM-DD")}`);
       today = today.subtract(1, "days");
     }
     const indices = _.difference(current_indices, acceptable_indices);
@@ -125,7 +125,7 @@ function get_aliases() {
     //     ".kibana-4": {
     //       "aliases": {}
     //     },
-    //     "logs-2016.04.02": {
+    //     "logs-2016-04-02": {
     //       "aliases": {
     //         "last_2days": {},
     //         "last_2weeks": {},
@@ -167,7 +167,7 @@ function update_alias_state(current_indices, alias) {
     const acceptable_indices = [];
     let today = moment();
     for (let i = 0; i < config.aliases.mappings[alias]; i++) {
-      acceptable_indices.push(`${config.indices.prefix}-${today.format("YYYY.MM.DD")}`);
+      acceptable_indices.push(`${config.indices.prefix}-${today.format("YYYY-MM-DD")}`);
       today = today.subtract(1, "days");
     }
     const indices_to_remove = _.difference(current_indices, acceptable_indices);
@@ -211,7 +211,7 @@ function filter_replica_indices(current_indices) {
     const ignore_indices = [];
     let today = moment();
     for (let i = 0; i < config.indices.replicas.days; i++) {
-      ignore_indices.push(`${config.indices.prefix}-${today.format("YYYY.MM.DD")}`);
+      ignore_indices.push(`${config.indices.prefix}-${today.format("YYYY-MM-DD")}`);
       today = today.subtract(1, "days");
     }
     const indices = _.difference(current_indices, ignore_indices);
