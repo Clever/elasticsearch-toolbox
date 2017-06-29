@@ -3,6 +3,7 @@ var moment  = require("moment");
 var request = require("request");
 
 var config  = require("../config");
+var constants = require("./constants");
 
 const auth = {
   user: config.ELASTICSEARCH_USER,
@@ -71,9 +72,15 @@ function filter_managed_indices(all_indices) {
     const managed_indices = [];
     all_indices.forEach((index) => {
       // filter out indices that don't match the prefix
-      if (index.indexOf(config.indices.prefix) === 0) {
-        managed_indices.push(index);
+      if (index.indexOf(config.indices.prefix) !== 0) {
+        return;
       }
+      // after the prefix, there should be a date in the date format
+      const indexDatePart = index.slice(`${config.indices.prefix}-`.length);
+      if (!moment(indexDatePart, constants.date_format, true /* strict parsing */).isValid()) {
+        return;
+      }
+      managed_indices.push(index);
     });
     resolve(managed_indices);
   });
@@ -86,7 +93,7 @@ function filter_old_indices(current_indices) {
     const acceptable_indices = [];
     let today = moment();
     for (let i = 0; i < config.indices.days; i++) {
-      acceptable_indices.push(`${config.indices.prefix}-${today.format("YYYY-MM-DD")}`);
+      acceptable_indices.push(`${config.indices.prefix}-${today.format(constants.date_format)}`);
       today = today.subtract(1, "days");
     }
     const indices = _.difference(current_indices, acceptable_indices);
@@ -167,7 +174,7 @@ function update_alias_state(current_indices, alias) {
     const acceptable_indices = [];
     let today = moment();
     for (let i = 0; i < config.aliases.mappings[alias]; i++) {
-      acceptable_indices.push(`${config.indices.prefix}-${today.format("YYYY-MM-DD")}`);
+      acceptable_indices.push(`${config.indices.prefix}-${today.format(constants.date_format)}`);
       today = today.subtract(1, "days");
     }
     const indices_to_remove = _.difference(current_indices, acceptable_indices);
@@ -211,7 +218,7 @@ function filter_replica_indices(current_indices) {
     const ignore_indices = [];
     let today = moment();
     for (let i = 0; i < config.indices.replicas.days; i++) {
-      ignore_indices.push(`${config.indices.prefix}-${today.format("YYYY-MM-DD")}`);
+      ignore_indices.push(`${config.indices.prefix}-${today.format(constants.date_format)}`);
       today = today.subtract(1, "days");
     }
     const indices = _.difference(current_indices, ignore_indices);
