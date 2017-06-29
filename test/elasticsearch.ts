@@ -4,11 +4,12 @@ var moment  = require("moment");
 var nock    = require("nock");
 
 var es = require("../lib/elasticsearch");
+var constants = require("../lib/constants");
 
 const today = moment();
 const yesterday = moment().subtract(1, "days");
 const lastMonth = moment().subtract(1, "month");
-const format = (m) => m.format("YYYY-MM-DD");
+const format = (m) => m.format(constants.date_format);
 
 describe("elasticsearch", () => {
   describe("get_indices", () => {
@@ -33,6 +34,7 @@ describe("elasticsearch", () => {
       returned_indices[`logs-${format(today)}`] = [];
       returned_indices[`logs-${format(yesterday)}`] = [];
       returned_indices[`logs-${format(lastMonth)}`] = [];
+      returned_indices["logs-not-a-date"] = [];
       const fakeES = nock(process.env.ELASTICSEARCH_URL)
         .get("/*/_settings")
         .reply(200, returned_indices)
