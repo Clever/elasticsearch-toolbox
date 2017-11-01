@@ -5,7 +5,7 @@
 include node.mk
 .DEFAULT_GOAL := test
 
-NODE_VERSION := "v6"
+NODE_VERSION := "v8"
 
 $(eval $(call node-version-check,$(NODE_VERSION)))
 
