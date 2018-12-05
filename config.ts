@@ -11,9 +11,10 @@ const env_var_defaults = {
 };
 
 // If ELASTICSEARCH_URL isn't provided, try using discovery
-if (process.env.ELASTICSEARCH_URL == null) {
-  env_var_defaults.ELASTICSEARCH_URL = discovery("haproxy-logs", "default").url();
-}
+env_var_defaults.ELASTICSEARCH_URL =
+  process.env.ELASTICSEARCH_URL ||
+  discovery("haproxy-logs", "default").url()
+;
 
 // Set Environment variables
 for (const key of Object.keys(env_var_defaults)) {
