@@ -1,5 +1,6 @@
 var fs   = require("fs");
 var yaml = require("js-yaml");
+const discovery = require("clever-discovery");
 
 const missing_vars = [];
 const env_var_defaults = {
@@ -9,6 +10,11 @@ const env_var_defaults = {
   ELASTICSEARCH_PASSWORD: null,
 };
 
+// If ELASTICSEARCH_URL isn't provided, try using discovery
+env_var_defaults.ELASTICSEARCH_URL =
+  process.env.ELASTICSEARCH_URL ||
+  discovery("haproxy-logs", "default").url()
+;
 
 // Set Environment variables
 for (const key of Object.keys(env_var_defaults)) {
