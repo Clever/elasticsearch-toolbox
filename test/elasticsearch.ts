@@ -32,16 +32,19 @@ describe("elasticsearch", () => {
       returned_indices[".kibana-4"] = [];
       returned_indices["my-unmanaged-index"] = [];
       returned_indices[`logs-${format(today)}`] = [];
+      returned_indices[`logs-kvm-${format(today)}`] = [];
       returned_indices[`logs-${format(yesterday)}`] = [];
+      returned_indices[`logs-kvm-${format(yesterday)}`] = [];
       returned_indices[`logs-${format(lastMonth)}`] = [];
+      returned_indices[`logs-kvm-${format(lastMonth)}`] = [];
       returned_indices["logs-not-a-date"] = [];
       const fakeES = nock(process.env.ELASTICSEARCH_URL)
         .get("/*/_settings")
         .reply(200, returned_indices)
-        .delete(`/logs-${format(lastMonth)}`)
+        .delete(`/logs-${format(lastMonth)},logs-kvm-${format(lastMonth)}`)
         .reply(200, {});
       es.clear_old_indices().then((indices) => {
-        assert.deepEqual(indices, [`logs-${format(lastMonth)}`]);
+        assert.deepEqual(indices, [`logs-${format(lastMonth)},logs-kvm-${format(lastMonth)}`]);
         fakeES.done();
         done();
       }).catch(done);
