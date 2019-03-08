@@ -76,7 +76,7 @@ function filter_managed_indices(all_indices) {
         return;
       }
       // after the prefix, there should be a date in the date format
-      const indexDatePart = index.slice(`${config.indices.prefix}-`.length);
+      const indexDatePart = index.slice(-constants.date_format.length);
       if (!moment(indexDatePart, constants.date_format, true /* strict parsing */).isValid()) {
         return;
       }
@@ -90,10 +90,16 @@ function filter_managed_indices(all_indices) {
 // NOTE: also relies on the list being pre-filtered to only include managed indices
 function filter_old_indices(current_indices) {
   return new Promise((resolve) => {
+    const prefix = config.indices.prefix;
     const acceptable_indices = [];
     let today = moment();
     for (let i = 0; i < config.indices.days; i++) {
-      acceptable_indices.push(`${config.indices.prefix}-${today.format(constants.date_format)}`);
+      const suffix = today.format(constants.date_format);
+
+      acceptable_indices.push(
+        ...current_indices.filter(index => index.startsWith(prefix) && index.endsWith(suffix))
+      );
+
       today = today.subtract(1, "days");
     }
     const indices = _.difference(current_indices, acceptable_indices);
@@ -215,10 +221,16 @@ export function update_aliases() {
 // filters out indices based on config.indices.replica.days
 function filter_replica_indices(current_indices) {
   return new Promise((resolve) => {
+    const prefix = config.indices.prefix;
     const ignore_indices = [];
     let today = moment();
     for (let i = 0; i < config.indices.replicas.days; i++) {
-      ignore_indices.push(`${config.indices.prefix}-${today.format(constants.date_format)}`);
+      const suffix = today.format(constants.date_format);
+
+      ignore_indices.push(
+        ...current_indices.filter(index => index.startsWith(prefix) && index.endsWith(suffix))
+      );
+
       today = today.subtract(1, "days");
     }
     const indices = _.difference(current_indices, ignore_indices);
