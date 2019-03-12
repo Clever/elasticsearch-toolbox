@@ -89,11 +89,14 @@ describe("elasticsearch", () => {
       current[".kibana-4"] = {aliases: {}};
       current["my-unmanaged-index"] = {aliases: {}};
       current[`logs-${format(yesterday)}`] = {aliases: {last_2days: {}}};
+      current[`logs-kvm-${format(yesterday)}`] = {aliases: {last_2days: {}}};
       current[`logs-${format(lastMonth)}`] = {aliases: {last_2days: {}}};
 
       const expected = {};
       expected[`logs-${format(yesterday)}`] = {aliases: {last_2days: {}}};
+      expected[`logs-kvm-${format(yesterday)}`] = {aliases: {last_2days: {}}};
       expected[`logs-${format(today)}`] = {aliases: {last_2days: {}}};
+      expected[`logs-kvm-${format(today)}`] = {aliases: {last_2days: {}}};
 
       const fakeES = nock(process.env.ELASTICSEARCH_URL)
         .get("/_aliases")
@@ -101,6 +104,7 @@ describe("elasticsearch", () => {
         .post("/_aliases",
               {actions: [
                 {remove: {index: `logs-${format(lastMonth)}`, alias: "last_2days"}},
+                {add: {index: `logs-kvm-${format(today)}`, alias: "last_2days"}},
                 {add: {index: `logs-${format(today)}`, alias: "last_2days"}},
               ],
               })
@@ -109,7 +113,10 @@ describe("elasticsearch", () => {
         .reply(200, expected);
       es.update_aliases().then((aliases) => {
         assert.deepEqual(aliases,
-                         {last_2days: [`logs-${format(yesterday)}`, `logs-${format(today)}`]});
+                         {last_2days: [`logs-${format(yesterday)}`,
+                            `logs-${format(today)}`,
+                            `logs-kvm-${format(yesterday)}`,
+                            `logs-kvm-${format(today)}`]});
         fakeES.done();
         done();
       }).catch(done);

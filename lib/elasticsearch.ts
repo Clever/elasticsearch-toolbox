@@ -176,15 +176,30 @@ function filter_managed_aliases(aliases) {
 }
 
 function update_alias_state(current_indices, alias) {
+  const prefix = config.indices.prefix;
   return new Promise((resolve, reject) => {
     const acceptable_indices = [];
     let today = moment();
     for (let i = 0; i < config.aliases.mappings[alias]; i++) {
-      acceptable_indices.push(`${config.indices.prefix}-${today.format(constants.date_format)}`);
+      const suffix = today.format(constants.date_format);
+
+      // keep aliases for indexes from today (if manually added)
+      acceptable_indices.push(
+        ...current_indices.filter(index => index.startsWith(prefix) && index.endsWith(suffix))
+      );
+
+      // add known indicies for today
+      acceptable_indices.push(
+        `${config.indices.prefix}-kvm-${today.format(constants.date_format)}`,
+        `${config.indices.prefix}-${today.format(constants.date_format)}`,
+      );
+
       today = today.subtract(1, "days");
     }
+
     const indices_to_remove = _.difference(current_indices, acceptable_indices);
     const indices_to_add = _.difference(acceptable_indices, current_indices);
+
 
     if (!indices_to_remove.length && !indices_to_add.length) {
       resolve();
