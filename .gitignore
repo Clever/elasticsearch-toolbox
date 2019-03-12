@@ -11,3 +11,4 @@ build
 
 dump.rdb
 npm-debug.log
+package-lock.json
