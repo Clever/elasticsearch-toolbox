@@ -183,14 +183,15 @@ function update_alias_state(current_indices, alias) {
     for (let i = 0; i < config.aliases.mappings[alias]; i++) {
       const suffix = today.format(constants.date_format);
 
-      // always add today
+      // keep aliases for indexes from today (if manually added)
+      acceptable_indices.push(
+        ...current_indices.filter(index => index.startsWith(prefix) && index.endsWith(suffix))
+      );
+
+      // add known indicies for today
       acceptable_indices.push(
         `${config.indices.prefix}-kvm-${today.format(constants.date_format)}`,
         `${config.indices.prefix}-${today.format(constants.date_format)}`,
-      );
-
-      acceptable_indices.push(
-        ...current_indices.filter(index => index.startsWith(prefix) && index.endsWith(suffix))
       );
 
       today = today.subtract(1, "days");
